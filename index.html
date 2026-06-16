@@ -395,7 +395,7 @@
         <div class="shop-input-card">
           <div class="field">
             <label for="rollsLeftInput">Meat rolls left today</label>
-            <div class="input-wrap"><input id="rollsLeftInput" type="number" inputmode="decimal" min="0" step="0.5" placeholder="e.g. 12" /><span class="unit">Ã 450g</span></div>
+            <div class="input-wrap"><input id="rollsLeftInput" type="number" inputmode="decimal" min="0" step="0.5" placeholder="e.g. 12" /><span class="unit">x 450g</span></div>
           </div>
           <div class="field">
             <label>Meals Reggie has already had on the selected date</label>
@@ -439,7 +439,7 @@
         <div class="details-body"><div class="tiles" id="averageTiles"></div><p class="note" id="averageNote"></p></div>
       </details>
 
-      <details class="card" id="predictionDetails">
+      <details class="card" id="predictionDetails" open>
         <summary><div class="summary-row"><div><h2>Adult weight prediction</h2></div><span class="chev"></span></div></summary>
         <div class="details-body"><div class="tiles" id="predictionTiles"></div><p class="note" id="predictionNote"></p></div>
       </details>
@@ -467,7 +467,7 @@
         </div>
       </details>
 
-      <footer>Date of birth: 08/01/2026 Â· Saved locally on this device</footer>
+      <footer>Date of birth: 08/01/2026 - Saved locally on this device</footer>
     </main>
   </div>
 
@@ -477,46 +477,55 @@
     (() => {
       const DOB_ISO = "2026-01-08";
       const MS_DAY = 86400000;
+      const ROLL_GRAMS = 450;
       const STORAGE = {
-        history: "picklePantsReggieWeightHistory",
+        history: "picklePantsReggieWeightHistoryFixedV2",
         theme: "picklePantsTheme"
       };
 
-      const adultRange = { min: 46, max: 60, midpoint: 53 };
-      const absoluteAdultClamp = { min: 44, max: 62 };
-
-      const growthReference = [
-        { month: 0, min: 0.8, max: 1.4, adultPct: 0.02 },
-        { month: 1, min: 2.8, max: 4.8, adultPct: 0.07 },
-        { month: 2, min: 7, max: 12, adultPct: 0.18 },
-        { month: 3, min: 12, max: 18, adultPct: 0.28 },
-        { month: 4, min: 18, max: 25, adultPct: 0.40 },
-        { month: 5, min: 22, max: 31, adultPct: 0.50 },
-        { month: 6, min: 27, max: 38, adultPct: 0.60 },
-        { month: 7, min: 31, max: 43, adultPct: 0.68 },
-        { month: 8, min: 34, max: 47, adultPct: 0.74 },
-        { month: 9, min: 37, max: 50, adultPct: 0.79 },
-        { month: 10, min: 39, max: 53, adultPct: 0.84 },
-        { month: 11, min: 41, max: 55, adultPct: 0.87 },
-        { month: 12, min: 42, max: 57, adultPct: 0.90 },
-        { month: 18, min: 45, max: 59, adultPct: 0.97 },
-        { month: 24, min: 46, max: 60, adultPct: 1.00 }
+      const rottweilerMaleAverageWeightCurveKg = [
+        { days: 0, avgKg: 0.45 }, { days: 7, avgKg: 0.80 }, { days: 14, avgKg: 1.20 }, { days: 21, avgKg: 1.65 },
+        { days: 28, avgKg: 2.50 }, { days: 35, avgKg: 3.50 }, { days: 42, avgKg: 4.60 }, { days: 49, avgKg: 5.30 },
+        { days: 56, avgKg: 6.30 }, { days: 63, avgKg: 7.70 }, { days: 70, avgKg: 9.20 }, { days: 77, avgKg: 11.20 },
+        { days: 84, avgKg: 13.80 }, { days: 91, avgKg: 15.00 }, { days: 98, avgKg: 16.20 }, { days: 105, avgKg: 17.70 },
+        { days: 112, avgKg: 21.90 }, { days: 119, avgKg: 23.00 }, { days: 126, avgKg: 24.20 }, { days: 133, avgKg: 25.30 },
+        { days: 140, avgKg: 26.50 }, { days: 147, avgKg: 27.20 }, { days: 154, avgKg: 27.90 }, { days: 161, avgKg: 28.70 },
+        { days: 168, avgKg: 29.60 }, { days: 175, avgKg: 30.40 }, { days: 182, avgKg: 32.70 }, { days: 189, avgKg: 33.50 },
+        { days: 196, avgKg: 34.40 }, { days: 203, avgKg: 35.40 }, { days: 210, avgKg: 36.30 }, { days: 217, avgKg: 36.80 },
+        { days: 224, avgKg: 37.30 }, { days: 231, avgKg: 37.70 }, { days: 238, avgKg: 38.00 }, { days: 245, avgKg: 38.80 },
+        { days: 252, avgKg: 39.70 }, { days: 259, avgKg: 40.50 }, { days: 266, avgKg: 41.50 }, { days: 273, avgKg: 44.10 },
+        { days: 280, avgKg: 44.60 }, { days: 287, avgKg: 45.20 }, { days: 294, avgKg: 45.80 }, { days: 301, avgKg: 46.50 },
+        { days: 304, avgKg: 46.80 }, { days: 315, avgKg: 47.20 }, { days: 329, avgKg: 47.80 }, { days: 343, avgKg: 48.50 },
+        { days: 365, avgKg: 49.50 }, { days: 392, avgKg: 50.20 }, { days: 420, avgKg: 50.90 }, { days: 456, avgKg: 51.70 },
+        { days: 487, avgKg: 52.20 }, { days: 518, avgKg: 52.60 }, { days: 548, avgKg: 52.90 }, { days: 579, avgKg: 53.20 },
+        { days: 609, avgKg: 53.40 }, { days: 640, avgKg: 53.60 }, { days: 670, avgKg: 53.70 }, { days: 700, avgKg: 53.80 },
+        { days: 730, avgKg: 54.00 }, { days: 760, avgKg: 54.10 }, { days: 790, avgKg: 54.20 }, { days: 821, avgKg: 54.30 },
+        { days: 852, avgKg: 54.40 }, { days: 883, avgKg: 54.45 }, { days: 913, avgKg: 54.50 }
       ];
 
-      const predictionWeights = [
-        { month: 0, baseline: .74, ratio: .20, fourMonth: .06, mature: 0, spread: 9.0, confidence: .22 },
-        { month: 2, baseline: .48, ratio: .42, fourMonth: .10, mature: 0, spread: 7.4, confidence: .30 },
-        { month: 4, baseline: .24, ratio: .30, fourMonth: .46, mature: 0, spread: 5.9, confidence: .46 },
-        { month: 6, baseline: .18, ratio: .49, fourMonth: .25, mature: .08, spread: 5.1, confidence: .58 },
-        { month: 9, baseline: .16, ratio: .56, fourMonth: .14, mature: .14, spread: 4.5, confidence: .68 },
-        { month: 12, baseline: .14, ratio: .42, fourMonth: .05, mature: .39, spread: 3.9, confidence: .78 },
-        { month: 18, baseline: .16, ratio: .20, fourMonth: 0, mature: .64, spread: 3.3, confidence: .90 },
-        { month: 24, baseline: .18, ratio: .08, fourMonth: 0, mature: .74, spread: 2.8, confidence: .96 }
+      const rottweilerMaleGrowthPercentCurve = [
+        { days: 0, percent: 0.008 }, { days: 7, percent: 0.015 }, { days: 14, percent: 0.022 }, { days: 21, percent: 0.030 },
+        { days: 28, percent: 0.046 }, { days: 35, percent: 0.064 }, { days: 42, percent: 0.084 }, { days: 49, percent: 0.097 },
+        { days: 56, percent: 0.116 }, { days: 63, percent: 0.141 }, { days: 70, percent: 0.169 }, { days: 77, percent: 0.206 },
+        { days: 84, percent: 0.253 }, { days: 91, percent: 0.275 }, { days: 98, percent: 0.297 }, { days: 105, percent: 0.325 },
+        { days: 112, percent: 0.402 }, { days: 119, percent: 0.422 }, { days: 126, percent: 0.444 }, { days: 133, percent: 0.464 },
+        { days: 140, percent: 0.486 }, { days: 147, percent: 0.499 }, { days: 154, percent: 0.512 }, { days: 161, percent: 0.527 },
+        { days: 168, percent: 0.543 }, { days: 175, percent: 0.558 }, { days: 182, percent: 0.600 }, { days: 189, percent: 0.615 },
+        { days: 196, percent: 0.631 }, { days: 203, percent: 0.650 }, { days: 210, percent: 0.666 }, { days: 217, percent: 0.675 },
+        { days: 224, percent: 0.684 }, { days: 231, percent: 0.692 }, { days: 238, percent: 0.697 }, { days: 245, percent: 0.712 },
+        { days: 252, percent: 0.728 }, { days: 259, percent: 0.743 }, { days: 266, percent: 0.761 }, { days: 273, percent: 0.809 },
+        { days: 280, percent: 0.818 }, { days: 287, percent: 0.829 }, { days: 294, percent: 0.840 }, { days: 301, percent: 0.853 },
+        { days: 304, percent: 0.859 }, { days: 315, percent: 0.866 }, { days: 329, percent: 0.877 }, { days: 343, percent: 0.890 },
+        { days: 365, percent: 0.908 }, { days: 392, percent: 0.921 }, { days: 420, percent: 0.934 }, { days: 456, percent: 0.948 },
+        { days: 487, percent: 0.957 }, { days: 518, percent: 0.965 }, { days: 548, percent: 0.971 }, { days: 579, percent: 0.976 },
+        { days: 609, percent: 0.980 }, { days: 640, percent: 0.983 }, { days: 670, percent: 0.985 }, { days: 700, percent: 0.987 },
+        { days: 730, percent: 0.991 }, { days: 760, percent: 0.993 }, { days: 790, percent: 0.995 }, { days: 821, percent: 0.996 },
+        { days: 852, percent: 0.998 }, { days: 883, percent: 0.999 }, { days: 913, percent: 1.000 }
       ];
 
       const supplements = [
         { id: "salmon", name: "Scottish Salmon Oil", unit: "pumps/day", calc: w => roundTo(w / 10, .5), meta: "1 pump per 10kg" },
-        { id: "pumpkin", name: "Pumpkin Powder", unit: "tsp/day", calc: w => roundTo((w / 5) * .5, .25), meta: "Â½ tsp per 5kg" },
+        { id: "pumpkin", name: "Pumpkin Powder", unit: "tsp/day", calc: w => roundTo((w / 5) * .5, .25), meta: "1/2 tsp per 5kg" },
         { id: "mussel", name: "Green-Lipped Mussel", unit: "g/day", calc: w => roundTo((w / 10) * .5, .1), meta: "0.5g per 10kg" },
         { id: "plaque", name: "Plaque Powder", unit: "tsp/day", calc: () => .5, meta: "Fixed daily amount" }
       ];
@@ -562,11 +571,16 @@
       };
 
       function loadHistory() {
-        const raw = load(STORAGE.history, []);
+        const oldKeys = ["picklePantsReggieWeightHistoryFixedV2", "picklePantsReggieWeightHistory", "picklePantsWeightHistoryV3", "reggieRawFeedHistory"];
+        let raw = [];
+        for (const key of oldKeys) {
+          raw = load(key, []);
+          if (Array.isArray(raw) && raw.length) break;
+        }
         if (!Array.isArray(raw)) return [];
         const dob = parseIso(DOB_ISO);
         return raw
-          .map(x => ({ date: typeof x.date === "string" ? x.date : "", weightKg: roundTo(Number(x.weightKg), .1) }))
+          .map(x => ({ date: typeof x.date === "string" ? x.date : "", weightKg: roundTo(Number(x.weightKg), .1), confirmed: Boolean(x.confirmed) }))
           .filter(x => parseIso(x.date) && parseIso(x.date) >= dob && validWeight(x.weightKg))
           .sort((a,b) => a.date.localeCompare(b.date))
           .reduce((acc, row) => {
@@ -582,7 +596,7 @@
         const selectedDate = parseIso(selectedIso);
         const dob = parseIso(DOB_ISO);
         const validDate = Boolean(selectedDate && selectedDate >= dob);
-        const last = lastWeight();
+        const last = lastValidWeight();
         const entered = parseWeight(el.weightInput.value);
         const effectiveWeight = entered ?? last?.weightKg ?? null;
         const usingPrevious = entered == null && validWeight(effectiveWeight);
@@ -591,10 +605,9 @@
         const months = days != null ? days / 30.4375 : null;
         const wholeMonths = validDate ? wholeMonthsBetween(dob, selectedDate) : null;
         const food = calcFood(effectiveWeight, wholeMonths);
-        const prediction = calcAdultPrediction(effectiveWeight, selectedDate);
-        const velocity = calcVelocity(state.history);
+        const prediction = calcAdultPrediction();
+        const velocity = calcVelocity(getPredictionRows());
         const existing = state.history.find(x => x.date === selectedIso);
-
         return { todayIso, selectedIso, selectedDate, validDate, last, entered, effectiveWeight, usingPrevious, days, weeks, months, wholeMonths, food, prediction, velocity, existing };
       }
 
@@ -633,7 +646,7 @@
         const food = vm.food.gramsPerDay ? `${vm.food.gramsPerDay}g/day` : "-";
         el.dashboard.innerHTML = [
           stat("Current weight used", weight, vm.usingPrevious ? "Using last saved weight" : "Using entered weight"),
-          stat("Food today", food, vm.food.meals ? `${vm.food.meals} meals Â· ${vm.food.gramsPerMeal}g each` : "Waiting for weight"),
+          stat("Food today", food, vm.food.meals ? `${vm.food.meals} meals - ${vm.food.gramsPerMeal}g each` : "Waiting for weight"),
           stat("Weekly gain", weekly, vm.velocity.avgLast3 != null ? `3-interval avg ${signed(vm.velocity.avgLast3, 2)} kg/wk` : "Needs more weigh-ins"),
           stat("Adult estimate", estText, vm.prediction.confidence || "Needs weight"),
           stat("Age", ageText, vm.validDate ? ageStage(vm.months) : "Invalid date")
@@ -681,7 +694,7 @@
           tile("Stage", vm.validDate ? ageStage(vm.months) : "-", "Age band"),
           tile("Feeding %", vm.food.percent ? `${Math.round(vm.food.percent * 100)}%` : "-", "Based on whole months"),
           tile("Meals", vm.food.meals || "-", vm.food.meals === 2 ? "2 meals from 6 months" : "3 meals until 6 months"),
-          tile("Daily total", vm.food.gramsPerDay ? `${vm.food.gramsPerDay}g` : "-", "Weight Ã feeding %")
+          tile("Daily total", vm.food.gramsPerDay ? `${vm.food.gramsPerDay}g` : "-", "Weight x feeding %")
         ].join("");
       }
 
@@ -696,12 +709,13 @@
       }
 
       function renderAge(vm) {
+        const latest = lastValidWeight();
+        const growth = latest ? getGrowthPercent(latest.ageDays) : (vm.validDate ? getGrowthPercent(vm.days) : 0);
         const circumference = 2 * Math.PI * 60;
-        const progress = vm.validDate ? clamp(vm.days / 365, 0, 1) : 0;
         el.progressRing.style.strokeDasharray = String(circumference);
-        el.progressRing.style.strokeDashoffset = String(circumference * (1 - progress));
-        el.ringValue.textContent = vm.validDate ? `${formatNumber(vm.months, 1)}m` : "-";
-        el.ringCaption.textContent = vm.validDate ? `${vm.days} days old` : "Invalid date";
+        el.progressRing.style.strokeDashoffset = String(circumference * (1 - clamp(growth, 0, 1)));
+        el.ringValue.textContent = vm.validDate ? `${Math.round(growth * 100)}%` : "-";
+        el.ringCaption.textContent = vm.validDate ? "Estimated growth progress" : "Invalid date";
         el.ageTiles.innerHTML = [
           tile("Days old", vm.validDate ? vm.days : "-", "From DOB"),
           tile("Weeks old", vm.validDate ? formatNumber(vm.weeks, 1) : "-", "Exact weeks"),
@@ -710,18 +724,42 @@
         ].join("");
       }
 
+      function renderAverage(vm) {
+        const latest = lastValidWeight();
+        if (!latest) {
+          el.averageTiles.innerHTML = [
+            tile("Average at age", "-", "Needs saved weight"),
+            tile("Reggie", "-", "Needs saved weight"),
+            tile("Difference", "-", "Needs saved weight"),
+            tile("Compared with average", "-", "Needs saved weight")
+          ].join("");
+          el.averageNote.textContent = "The average comparison is not a body-condition diagnosis.";
+          return;
+        }
+        const c = getAverageComparison(latest.weightKg, latest.ageDays);
+        const direction = c.differenceFromAverageKg >= 0 ? "above" : "below";
+        el.averageTiles.innerHTML = [
+          tile("Average at age", formatKg(c.averageKg), "Blended male Rottweiler average"),
+          tile("Reggie", formatKg(latest.weightKg), `${latest.ageDays} days old`),
+          tile("Difference", `${signed(c.differenceFromAverageKg, 1)} kg`, `${direction} average`),
+          tile("Compared with average", `${signed(c.percentVsAverage, 0)}%`, `${direction} blended average`)
+        ].join("");
+        el.averageNote.textContent = `Reggie is ${formatNumber(Math.abs(c.differenceFromAverageKg), 1)} kg ${direction} the blended male Rottweiler average for his age. This does not automatically mean overweight; body condition should be assessed separately.`;
+      }
+
       function renderPrediction(vm) {
         const p = vm.prediction;
         el.predictionTiles.innerHTML = [
-          tile("Most recent estimate", p.midpoint ? `${formatNumber(p.midpoint, 1)} kg` : "-", p.source || "Needs weight"),
-          tile("Likely range", p.range || "-", "Broad estimate"),
-          tile("Confidence", p.confidence || "-", "Improves with age"),
-          tile("% of estimate", p.percentOfMidpoint != null ? `${p.percentOfMidpoint}%` : "-", "Current vs midpoint")
+          tile("Estimated adult weight", p.midpoint ? `${formatNumber(p.midpoint, 1)} kg` : "-", p.source || "Needs valid weight"),
+          tile("Likely range", p.range || "-", "Central estimate plus range"),
+          tile("Prediction confidence", p.confidence || "-", "Model confidence, not certainty"),
+          tile("Growth progress", p.growthProgress != null ? `${formatNumber(p.growthProgress, 0)}%` : "-", "Estimated adult weight reached")
         ].join("");
+        el.predictionNote.textContent = "Adult weight prediction is based on Reggie's exact age in days, latest valid weight, previous recorded weights, and a blended male Rottweiler growth curve. The average comparison is not a body-condition diagnosis. Confidence improves as more valid weights are recorded and as Reggie gets closer to maturity.";
       }
 
       function renderHistory(vm) {
-        const h = [...state.history].sort((a,b) => b.date.localeCompare(a.date));
+        const rows = [...getValidatedRows()].sort((a,b) => b.date.localeCompare(a.date));
         const trendPills = [];
         if (vm.velocity.latest) trendPills.push(`<span class="pill">Weekly ${signed(vm.velocity.latest.kgPerWeek, 2)} kg/wk</span>`);
         if (vm.velocity.monthly) trendPills.push(`<span class="pill">Monthly ${signed(vm.velocity.monthly.kgPerMonth, 2)} kg/month</span>`);
@@ -729,46 +767,52 @@
         if (!trendPills.length) trendPills.push(`<span class="pill">Save two weights to unlock trends</span>`);
         el.historyTrendPills.innerHTML = trendPills.join("");
 
-        if (!h.length) {
+        if (!rows.length) {
           el.historyList.innerHTML = `<div class="empty">No saved weights yet.</div>`;
           return;
         }
 
-        el.historyList.innerHTML = h.map(row => `<article class="history-row">
-          <div><div class="history-date">${escapeHtml(formatDate(parseIso(row.date)))}</div></div>
-          <div class="history-weight">${formatKg(row.weightKg)}</div>
-          <div class="history-actions">
-            <button type="button" class="small-btn" data-action="edit" data-date="${row.date}">Edit</button>
-            <button type="button" class="small-btn danger" data-action="delete" data-date="${row.date}">Delete</button>
-          </div>
-        </article>`).join("");
+        el.historyList.innerHTML = rows.map(row => {
+          const flag = row.anomaly && !row.confirmed ? `<div class="meta" style="color:var(--warning);font-weight:800;">Excluded from prediction - ${escapeHtml(row.anomalyReason)}</div>` : "";
+          const confirm = row.anomaly && !row.confirmed ? `<button type="button" class="small-btn" data-action="confirm" data-date="${row.date}">Confirm</button>` : "";
+          return `<article class="history-row">
+            <div><div class="history-date">${escapeHtml(formatDate(parseIso(row.date)))}</div>${flag}</div>
+            <div class="history-weight">${formatKg(row.weightKg)}</div>
+            <div class="history-actions">
+              ${confirm}
+              <button type="button" class="small-btn" data-action="edit" data-date="${row.date}">Edit</button>
+              <button type="button" class="small-btn danger" data-action="delete" data-date="${row.date}">Delete</button>
+            </div>
+          </article>`;
+        }).join("");
       }
 
       function renderChart(vm) {
-        const hist = [...state.history].sort((a,b) => a.date.localeCompare(b.date)).map(x => ({ date: parseIso(x.date), iso: x.date, weight: x.weightKg })).filter(x => x.date);
+        const hist = getPredictionRows().map(x => ({ date: parseIso(x.date), iso: x.date, weight: x.weightKg, ageDays: x.ageDays })).filter(x => x.date);
         if (!hist.length) {
           el.chartWrap.innerHTML = `<div class="empty">No chart yet. Save a weight to start the trend.</div>`;
           return;
         }
-        const forecast = makeForecast(hist);
+
+        const prediction = calcAdultPrediction();
+        const forecast = makeForecast(hist, prediction.midpoint);
         const allDates = hist.concat(forecast).map(x => x.date.getTime());
         let minTime = Math.min(...allDates), maxTime = Math.max(...allDates);
         if (minTime === maxTime) { minTime -= 7 * MS_DAY; maxTime += 21 * MS_DAY; }
         const span = Math.max(maxTime - minTime, 28 * MS_DAY);
         minTime -= span * .06; maxTime += span * .06;
 
-        const zone = Array.from({ length: 20 }, (_, idx) => {
-          const t = minTime + ((maxTime - minTime) * idx / 19);
-          const m = monthsBetween(parseIso(DOB_ISO), new Date(t));
-          const ref = refAtMonth(m);
-          return { time: t, low: ref.min, high: ref.max };
+        const averageLine = Array.from({ length: 30 }, (_, idx) => {
+          const t = minTime + ((maxTime - minTime) * idx / 29);
+          const ageDays = daysBetween(parseIso(DOB_ISO), new Date(t));
+          return { time: t, weight: getAverageWeightKg(ageDays) };
         });
 
-        const weights = hist.map(x => x.weight).concat(forecast.map(x => x.weight), zone.flatMap(z => [z.low, z.high]));
+        const weights = hist.map(x => x.weight).concat(forecast.map(x => x.weight), averageLine.map(z => z.weight));
         let minW = Math.min(...weights), maxW = Math.max(...weights);
         if (minW === maxW) { minW = Math.max(0, minW - 2); maxW += 2; }
-        const pad = Math.max(1.5, (maxW - minW) * .16);
-        minW = Math.max(0, minW - pad); maxW += pad;
+        const chartPad = Math.max(1.5, (maxW - minW) * .16);
+        minW = Math.max(0, minW - chartPad); maxW += chartPad;
 
         const W = 900, H = 340, padBox = { top: 24, right: 18, bottom: 48, left: 58 };
         const plotW = W - padBox.left - padBox.right;
@@ -776,21 +820,19 @@
         const x = t => padBox.left + ((t - minTime) / (maxTime - minTime || 1)) * plotW;
         const y = kg => padBox.top + (1 - ((kg - minW) / (maxW - minW || 1))) * plotH;
         const line = pts => pts.length ? `M ${pts[0][0]} ${pts[0][1]} ` + pts.slice(1).map(p => `L ${p[0]} ${p[1]}`).join(" ") : "";
-        const areaTop = zone.map(z => [x(z.time), y(z.high)]);
-        const areaBottom = zone.slice().reverse().map(z => [x(z.time), y(z.low)]);
-        const area = line(areaTop.concat(areaBottom)) + " Z";
         const actualPts = hist.map(p => [x(p.date.getTime()), y(p.weight)]);
         const forecastPts = forecast.length ? [[x(hist[hist.length-1].date.getTime()), y(hist[hist.length-1].weight)]].concat(forecast.map(p => [x(p.date.getTime()), y(p.weight)])) : [];
+        const avgPts = averageLine.map(p => [x(p.time), y(p.weight)]);
         const yTicks = makeTicks(minW, maxW, 4);
         const xTicks = makeTicks(minTime, maxTime, 4).map(t => ({ time: t, label: new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(new Date(t)) }));
 
         el.chartWrap.innerHTML = `<svg class="chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Weight history chart">
           <rect width="${W}" height="${H}" fill="transparent"></rect>
-          <path d="${area}" fill="rgba(130,130,130,.13)"></path>
           ${yTicks.map(v => `<g><line x1="${padBox.left}" x2="${W-padBox.right}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${padBox.left-9}" y="${y(v)+4}" text-anchor="end" fill="var(--faint)" font-size="12">${formatNumber(v,1)}</text></g>`).join("")}
           ${xTicks.map(t => `<text x="${x(t.time)}" y="${H-16}" text-anchor="middle" fill="var(--faint)" font-size="12">${escapeHtml(t.label)}</text>`).join("")}
           <line x1="${padBox.left}" x2="${padBox.left}" y1="${padBox.top}" y2="${H-padBox.bottom}" stroke="var(--line-strong)"/>
           <line x1="${padBox.left}" x2="${W-padBox.right}" y1="${H-padBox.bottom}" y2="${H-padBox.bottom}" stroke="var(--line-strong)"/>
+          <path d="${line(avgPts)}" fill="none" stroke="#8c8c8c" stroke-width="3" stroke-dasharray="8 8" stroke-linecap="round" stroke-linejoin="round"/>
           ${actualPts.length > 1 ? `<path d="${line(actualPts)}" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
           ${forecastPts.length > 1 ? `<path d="${line(forecastPts)}" fill="none" stroke="var(--accent-2)" stroke-width="3" stroke-dasharray="9 8" stroke-linecap="round" stroke-linejoin="round"/>` : ""}
           ${actualPts.map((p, idx) => `<circle cx="${p[0]}" cy="${p[1]}" r="${idx === actualPts.length-1 ? 6.5 : 5}" fill="var(--surface)" stroke="var(--accent)" stroke-width="3"/>`).join("")}
@@ -805,7 +847,8 @@
         const w = parseWeight(el.weightInput.value);
         if (!selectedDate || selectedDate < dob) return toast("Date cannot be before Reggie's date of birth.");
         if (!validWeight(w)) return toast("Enter a valid weight first.");
-        const row = { date: selectedIso, weightKg: roundTo(w, .1) };
+        const existing = state.history.find(x => x.date === selectedIso);
+        const row = { date: selectedIso, weightKg: roundTo(w, .1), confirmed: existing ? Boolean(existing.confirmed) : false };
         const idx = state.history.findIndex(x => x.date === selectedIso);
         if (idx >= 0) state.history[idx] = row; else state.history.push(row);
         state.history.sort((a,b) => a.date.localeCompare(b.date));
@@ -814,25 +857,166 @@
         render();
       }
 
-      const growthPercentCurveForFoodShop = [
-        { days: 0, percent: 0.008 }, { days: 7, percent: 0.015 }, { days: 14, percent: 0.022 }, { days: 21, percent: 0.030 },
-        { days: 28, percent: 0.046 }, { days: 35, percent: 0.064 }, { days: 42, percent: 0.084 }, { days: 49, percent: 0.097 },
-        { days: 56, percent: 0.116 }, { days: 63, percent: 0.141 }, { days: 70, percent: 0.169 }, { days: 77, percent: 0.206 },
-        { days: 84, percent: 0.253 }, { days: 91, percent: 0.275 }, { days: 98, percent: 0.297 }, { days: 105, percent: 0.325 },
-        { days: 112, percent: 0.402 }, { days: 119, percent: 0.422 }, { days: 126, percent: 0.444 }, { days: 133, percent: 0.464 },
-        { days: 140, percent: 0.486 }, { days: 147, percent: 0.499 }, { days: 154, percent: 0.512 }, { days: 161, percent: 0.527 },
-        { days: 168, percent: 0.543 }, { days: 175, percent: 0.558 }, { days: 182, percent: 0.600 }, { days: 189, percent: 0.615 },
-        { days: 196, percent: 0.631 }, { days: 203, percent: 0.650 }, { days: 210, percent: 0.666 }, { days: 217, percent: 0.675 },
-        { days: 224, percent: 0.684 }, { days: 231, percent: 0.692 }, { days: 238, percent: 0.697 }, { days: 245, percent: 0.712 },
-        { days: 252, percent: 0.728 }, { days: 259, percent: 0.743 }, { days: 266, percent: 0.761 }, { days: 273, percent: 0.809 },
-        { days: 280, percent: 0.818 }, { days: 287, percent: 0.829 }, { days: 294, percent: 0.840 }, { days: 301, percent: 0.853 },
-        { days: 304, percent: 0.859 }, { days: 315, percent: 0.866 }, { days: 329, percent: 0.877 }, { days: 343, percent: 0.890 },
-        { days: 365, percent: 0.908 }, { days: 392, percent: 0.921 }, { days: 420, percent: 0.934 }, { days: 456, percent: 0.948 },
-        { days: 487, percent: 0.957 }, { days: 518, percent: 0.965 }, { days: 548, percent: 0.971 }, { days: 579, percent: 0.976 },
-        { days: 609, percent: 0.980 }, { days: 640, percent: 0.983 }, { days: 670, percent: 0.985 }, { days: 700, percent: 0.987 },
-        { days: 730, percent: 0.991 }, { days: 760, percent: 0.993 }, { days: 790, percent: 0.995 }, { days: 821, percent: 0.996 },
-        { days: 852, percent: 0.998 }, { days: 883, percent: 0.999 }, { days: 913, percent: 1.000 }
-      ];
+      function getValidatedRows() {
+        const dob = parseIso(DOB_ISO);
+        const rows = state.history
+          .map(x => ({ date: x.date, weightKg: Number(x.weightKg), confirmed: Boolean(x.confirmed) }))
+          .filter(x => parseIso(x.date) && parseIso(x.date) >= dob && validWeight(x.weightKg))
+          .sort((a,b) => a.date.localeCompare(b.date))
+          .map(x => ({ ...x, ageDays: daysBetween(dob, parseIso(x.date)), anomaly: false, anomalyReason: "", includeInPrediction: true }));
+
+        for (let i = 1; i < rows.length; i++) {
+          const prev = rows[i - 1];
+          const curr = rows[i];
+          const d = daysBetween(parseIso(prev.date), parseIso(curr.date));
+          if (d > 0 && d <= 7) {
+            const pct = ((curr.weightKg - prev.weightKg) / prev.weightKg) * 100;
+            if (pct > 20 && !curr.confirmed) {
+              curr.anomaly = true;
+              curr.anomalyReason = `rise of ${formatNumber(pct, 1)}% in ${d} days`;
+              curr.includeInPrediction = false;
+            }
+            if (pct < -8 && !curr.confirmed) {
+              curr.anomaly = true;
+              curr.anomalyReason = `drop of ${formatNumber(Math.abs(pct), 1)}% in ${d} days`;
+              curr.includeInPrediction = false;
+            }
+          }
+        }
+        return rows;
+      }
+
+      function getPredictionRows() {
+        return getValidatedRows().filter(x => x.includeInPrediction);
+      }
+
+      function lastValidWeight() {
+        return getPredictionRows().at(-1) || null;
+      }
+
+      function getInterpolatedValue(curve, ageDays, valueKey) {
+        if (!Number.isFinite(ageDays)) return null;
+        if (ageDays <= curve[0].days) return curve[0][valueKey];
+        if (ageDays >= curve[curve.length - 1].days) return curve[curve.length - 1][valueKey];
+        for (let i = 0; i < curve.length - 1; i++) {
+          const lower = curve[i], upper = curve[i + 1];
+          if (ageDays >= lower.days && ageDays <= upper.days) {
+            const ratio = (ageDays - lower.days) / (upper.days - lower.days || 1);
+            return lower[valueKey] + ratio * (upper[valueKey] - lower[valueKey]);
+          }
+        }
+        return curve[curve.length - 1][valueKey];
+      }
+
+      function getAverageWeightKg(ageDays) {
+        return getInterpolatedValue(rottweilerMaleAverageWeightCurveKg, ageDays, "avgKg");
+      }
+
+      function getGrowthPercent(ageDays) {
+        return getInterpolatedValue(rottweilerMaleGrowthPercentCurve, ageDays, "percent");
+      }
+
+      function estimateAdultWeightKg(weightKg, ageDays) {
+        const gp = getGrowthPercent(ageDays);
+        return gp > 0 ? weightKg / gp : null;
+      }
+
+      function estimateProjectedWeightKg(adultWeightKg, targetAgeDays) {
+        return adultWeightKg * getGrowthPercent(targetAgeDays);
+      }
+
+      function estimateAdultWeightRangeKg(adultWeightKg, growthPercent, validWeightCount, dateSpanDays) {
+        const remainingGrowth = 1 - growthPercent;
+        let lowMargin = 0.015 + (remainingGrowth * 0.18);
+        let highMargin = 0.015 + (remainingGrowth * 0.14);
+        if (validWeightCount >= 5 && dateSpanDays >= 56) {
+          lowMargin -= 0.015;
+          highMargin -= 0.010;
+        }
+        lowMargin = Math.max(0.015, lowMargin);
+        highMargin = Math.max(0.015, highMargin);
+        return { low: adultWeightKg * (1 - lowMargin), high: adultWeightKg * (1 + highMargin) };
+      }
+
+      function estimatePredictionConfidence(growthPercent, validWeightCount, dateSpanDays, latestWeightAgeDays, hasRecentAnomaly, latestDateIso) {
+        let score = 25 + (70 * Math.pow(growthPercent, 1.15));
+        if (validWeightCount >= 5 && dateSpanDays >= 56) score += 5;
+        else if (validWeightCount >= 3 && dateSpanDays >= 28) score += 3;
+
+        const recent = getPredictionRows().slice(-3);
+        if (recent.length === 3 && recent[2].weightKg > recent[1].weightKg && recent[1].weightKg > recent[0].weightKg) score += 3;
+        if (validWeightCount === 1) score -= 10;
+        if (validWeightCount === 2) score -= 5;
+        const daysOld = latestDateIso ? daysBetween(parseIso(latestDateIso), parseIso(iso(new Date()))) : 0;
+        if (daysOld > 60) score -= 10;
+        else if (daysOld > 30) score -= 5;
+        if (hasRecentAnomaly) score -= 5;
+
+        let max = 95;
+        if (latestWeightAgeDays >= 548 && latestWeightAgeDays < 913) max = 98;
+        if (latestWeightAgeDays >= 913) max = 100;
+        return clamp(score, 20, max);
+      }
+
+      function confidenceLabel(score) {
+        if (score >= 100) return "Final adult weight";
+        if (score >= 97) return "Near final";
+        if (score >= 90) return "High";
+        if (score >= 80) return "Good";
+        if (score >= 70) return "Moderate to good";
+        if (score >= 60) return "Moderate";
+        if (score >= 45) return "Low to moderate";
+        if (score >= 30) return "Low";
+        return "Very low";
+      }
+
+      function getAverageComparison(weightKg, ageDays) {
+        const averageKg = getAverageWeightKg(ageDays);
+        const differenceFromAverageKg = weightKg - averageKg;
+        const percentVsAverage = ((weightKg - averageKg) / averageKg) * 100;
+        return { averageKg, differenceFromAverageKg, percentVsAverage };
+      }
+
+      function calcAdultPrediction() {
+        const rows = getPredictionRows();
+        if (!rows.length) return { low: null, high: null, midpoint: null, confidence: "", percentOfMidpoint: null, range: "", source: "", growthProgress: null };
+        const latest = rows.at(-1);
+        const latestGrowthPercent = getGrowthPercent(latest.ageDays);
+        const usable = rows.slice(-5);
+        const dateSpanDays = usable.length >= 2 ? daysBetween(parseIso(usable[0].date), parseIso(usable.at(-1).date)) : 0;
+        let adultEstimate;
+        if (usable.length >= 3) {
+          const recent = [...usable].reverse();
+          const weights = [0.45, 0.25, 0.15, 0.10, 0.05];
+          let weightedTotal = 0, weightTotal = 0;
+          recent.forEach((row, idx) => {
+            const adult = estimateAdultWeightKg(row.weightKg, row.ageDays);
+            const w = weights[idx] || 0;
+            if (Number.isFinite(adult) && w > 0) {
+              weightedTotal += adult * w;
+              weightTotal += w;
+            }
+          });
+          adultEstimate = weightedTotal / weightTotal;
+        } else {
+          adultEstimate = estimateAdultWeightKg(latest.weightKg, latest.ageDays);
+        }
+
+        const range = estimateAdultWeightRangeKg(adultEstimate, latestGrowthPercent, rows.length, dateSpanDays);
+        const hasRecentAnomaly = getValidatedRows().slice(-5).some(x => x.anomaly && !x.confirmed);
+        const confidenceScore = estimatePredictionConfidence(latestGrowthPercent, rows.length, dateSpanDays, latest.ageDays, hasRecentAnomaly, latest.date);
+        const confidence = `${confidenceLabel(confidenceScore)}, ${Math.round(confidenceScore)}%`;
+        return {
+          low: range.low,
+          high: range.high,
+          midpoint: adultEstimate,
+          confidence,
+          percentOfMidpoint: Math.round((latest.weightKg / adultEstimate) * 100),
+          range: `${formatNumber(range.low,1)} to ${formatNumber(range.high,1)} kg`,
+          source: usable.length >= 3 ? "Weighted from recent valid weights" : "Based on latest valid weight",
+          growthProgress: latestGrowthPercent * 100
+        };
+      }
 
       function calcFoodShopPlan(vm) {
         const baseDate = vm.selectedDate;
@@ -841,11 +1025,8 @@
         const payday = baseDate ? nextPaydayOnOrAfter(baseDate) : null;
         const shopDate = payday ? nextSaturdayAfter(payday.actualDate) : null;
         const rollsLeft = Number.parseFloat(el.rollsLeftInput?.value || "");
-        const latestWeight = validWeight(vm.effectiveWeight) ? vm.effectiveWeight : null;
-        const baseAgeDays = baseDate ? daysBetween(dob, baseDate) : null;
-        const growthPercent = baseAgeDays != null ? getFoodShopGrowthPercent(baseAgeDays) : null;
-        const adultEstimate = latestWeight && growthPercent ? latestWeight / growthPercent : null;
-
+        const prediction = calcAdultPrediction();
+        const adultEstimate = prediction.midpoint;
         const common = {
           ready: false,
           paydayText: payday ? formatDate(payday.actualDate) : "-",
@@ -854,15 +1035,14 @@
           note: "Enter Reggie's current weight/date and how many 450g meat rolls are left.",
           reason: "Needs weight and rolls left"
         };
-
-        if (!baseDate || !shopDate || !validWeight(latestWeight) || !Number.isFinite(rollsLeft) || rollsLeft < 0 || !adultEstimate) return common;
+        if (!baseDate || !shopDate || !Number.isFinite(rollsLeft) || rollsLeft < 0 || !adultEstimate) return common;
 
         let neededGrams = 0;
         let daysCovered = 0;
         const dateCursor = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 12, 0, 0, 0);
         while (dateCursor <= shopDate) {
           const ageDays = daysBetween(dob, dateCursor);
-          const projectedWeight = adultEstimate * getFoodShopGrowthPercent(ageDays);
+          const projectedWeight = estimateProjectedWeightKg(adultEstimate, ageDays);
           const food = calcFood(projectedWeight, wholeMonthsBetween(dob, dateCursor));
           if (food.gramsPerDay) {
             if (iso(dateCursor) === baseIso) {
@@ -877,14 +1057,10 @@
           }
           dateCursor.setDate(dateCursor.getDate() + 1);
         }
-
-        const neededRolls = neededGrams / 450;
+        const neededRolls = neededGrams / ROLL_GRAMS;
         const shortageRolls = Math.max(0, neededRolls - rollsLeft);
         const safetyBufferRolls = 2;
         const rollsToBuy = Math.ceil(shortageRolls + safetyBufferRolls);
-        const spareRollsAfterBuy = rollsLeft + rollsToBuy - neededRolls;
-        const remainingRollsAfterCurrentStock = rollsLeft - neededRolls;
-
         return {
           ready: true,
           paydayText: formatDate(payday.actualDate),
@@ -894,25 +1070,10 @@
           neededGrams,
           neededRolls,
           rollsToBuy,
-          spareRollsAfterBuy,
-          remainingRollsAfterCurrentStock,
+          spareRollsAfterBuy: rollsLeft + rollsToBuy - neededRolls,
+          remainingRollsAfterCurrentStock: rollsLeft - neededRolls,
           daysCovered
         };
-      }
-
-      function getFoodShopGrowthPercent(ageDays) {
-        if (!Number.isFinite(ageDays)) return null;
-        const curve = growthPercentCurveForFoodShop;
-        if (ageDays <= curve[0].days) return curve[0].percent;
-        if (ageDays >= curve[curve.length - 1].days) return 1;
-        for (let i = 0; i < curve.length - 1; i++) {
-          const lower = curve[i], upper = curve[i + 1];
-          if (ageDays >= lower.days && ageDays <= upper.days) {
-            const ratio = (ageDays - lower.days) / (upper.days - lower.days || 1);
-            return lower.percent + ratio * (upper.percent - lower.percent);
-          }
-        }
-        return 1;
       }
 
       function nextPaydayOnOrAfter(fromDate) {
@@ -940,69 +1101,29 @@
       }
 
       function isWeekend(date) { return date.getDay() === 0 || date.getDay() === 6; }
-
-      function isEnglandWalesBankHoliday(date) {
-        const key = iso(date);
-        return getEnglandWalesBankHolidaySet(date.getFullYear()).has(key);
-      }
-
+      function isEnglandWalesBankHoliday(date) { return getEnglandWalesBankHolidaySet(date.getFullYear()).has(iso(date)); }
       function getEnglandWalesBankHolidaySet(year) {
         const dates = new Set();
         const add = d => dates.add(iso(d));
-        add(substituteIfWeekend(new Date(year, 0, 1, 12))); // New Year's Day
+        add(substituteIfWeekend(new Date(year, 0, 1, 12)));
         const easter = easterSunday(year);
-        add(addDays(easter, -2)); // Good Friday
-        add(addDays(easter, 1)); // Easter Monday
-        add(nthWeekdayOfMonth(year, 4, 1, 1)); // Early May bank holiday
-        add(lastWeekdayOfMonth(year, 4, 1)); // Spring bank holiday
-        add(lastWeekdayOfMonth(year, 7, 1)); // Summer bank holiday
+        add(addDays(easter, -2));
+        add(addDays(easter, 1));
+        add(nthWeekdayOfMonth(year, 4, 1, 1));
+        add(lastWeekdayOfMonth(year, 4, 1));
+        add(lastWeekdayOfMonth(year, 7, 1));
         const christmas = new Date(year, 11, 25, 12);
         const boxing = new Date(year, 11, 26, 12);
-        if (christmas.getDay() === 6) { add(new Date(year, 11, 27, 12)); add(new Date(year, 11, 28, 12)); }
-        else if (christmas.getDay() === 0) { add(new Date(year, 11, 27, 12)); add(new Date(year, 11, 28, 12)); }
+        if (christmas.getDay() === 6 || christmas.getDay() === 0) { add(new Date(year, 11, 27, 12)); add(new Date(year, 11, 28, 12)); }
         else if (boxing.getDay() === 6) { add(christmas); add(new Date(year, 11, 28, 12)); }
         else if (boxing.getDay() === 0) { add(christmas); add(new Date(year, 11, 27, 12)); }
         else { add(christmas); add(boxing); }
         return dates;
       }
-
-      function substituteIfWeekend(date) {
-        const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
-        if (d.getDay() === 6) d.setDate(d.getDate() + 2);
-        else if (d.getDay() === 0) d.setDate(d.getDate() + 1);
-        return d;
-      }
-
-      function nthWeekdayOfMonth(year, monthIndex, weekday, n) {
-        const d = new Date(year, monthIndex, 1, 12);
-        while (d.getDay() !== weekday) d.setDate(d.getDate() + 1);
-        d.setDate(d.getDate() + ((n - 1) * 7));
-        return d;
-      }
-
-      function lastWeekdayOfMonth(year, monthIndex, weekday) {
-        const d = new Date(year, monthIndex + 1, 0, 12);
-        while (d.getDay() !== weekday) d.setDate(d.getDate() - 1);
-        return d;
-      }
-
-      function easterSunday(year) {
-        const a = year % 19;
-        const b = Math.floor(year / 100);
-        const c = year % 100;
-        const d = Math.floor(b / 4);
-        const e = b % 4;
-        const f = Math.floor((b + 8) / 25);
-        const g = Math.floor((b - f + 1) / 3);
-        const h = (19 * a + b - d - g + 15) % 30;
-        const i = Math.floor(c / 4);
-        const k = c % 4;
-        const l = (32 + 2 * e + 2 * i - h - k) % 7;
-        const m = Math.floor((a + 11 * h + 22 * l) / 451);
-        const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
-        const day = ((h + l - 7 * m + 114) % 31) + 1;
-        return new Date(year, month, day, 12);
-      }
+      function substituteIfWeekend(date) { const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12); if (d.getDay() === 6) d.setDate(d.getDate() + 2); else if (d.getDay() === 0) d.setDate(d.getDate() + 1); return d; }
+      function nthWeekdayOfMonth(year, monthIndex, weekday, n) { const d = new Date(year, monthIndex, 1, 12); while (d.getDay() !== weekday) d.setDate(d.getDate() + 1); d.setDate(d.getDate() + ((n - 1) * 7)); return d; }
+      function lastWeekdayOfMonth(year, monthIndex, weekday) { const d = new Date(year, monthIndex + 1, 0, 12); while (d.getDay() !== weekday) d.setDate(d.getDate() - 1); return d; }
+      function easterSunday(year) { const a=year%19,b=Math.floor(year/100),c=year%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),month=Math.floor((h+l-7*m+114)/31)-1,day=((h+l-7*m+114)%31)+1; return new Date(year, month, day, 12); }
 
       function calcFood(weight, monthsWhole) {
         if (!validWeight(weight) || monthsWhole == null) return { percent: null, gramsPerDay: null, meals: null, gramsPerMeal: null };
@@ -1010,30 +1131,6 @@
         const gramsPerDay = Math.round(weight * 1000 * percent);
         const meals = monthsWhole < 6 ? 3 : 2;
         return { percent, gramsPerDay, meals, gramsPerMeal: Math.round(gramsPerDay / meals) };
-      }
-
-      function calcAdultPrediction(weight, date) {
-        if (!validWeight(weight) || !date) return { low: null, high: null, midpoint: null, confidence: "", percentOfMidpoint: null, range: "", source: "" };
-        const ageMonths = monthsBetween(parseIso(DOB_ISO), date);
-        const ref = refAtMonth(ageMonths);
-        const adultPct = clamp(ref.adultPct || .5, .08, 1);
-        const ratioEstimate = clamp(weight / adultPct, absoluteAdultClamp.min, absoluteAdultClamp.max);
-        const fourMonthPct = refAtMonth(4).adultPct || .40;
-        const fourMonthStyleEstimate = clamp(weight * ((2 * fourMonthPct) / adultPct), absoluteAdultClamp.min, absoluteAdultClamp.max);
-        const matureEstimate = clamp(weight / clamp(adultPct, .92, 1), absoluteAdultClamp.min, absoluteAdultClamp.max);
-        const baseline = adultRange.midpoint;
-        const blend = interpolatePredictionWeights(ageMonths);
-        const total = blend.baseline + blend.ratio + blend.fourMonth + blend.mature || 1;
-        const midpoint = clamp(
-          (baseline * blend.baseline + ratioEstimate * blend.ratio + fourMonthStyleEstimate * blend.fourMonth + matureEstimate * blend.mature) / total,
-          adultRange.min,
-          adultRange.max
-        );
-        let low = clamp(midpoint - blend.spread, absoluteAdultClamp.min, adultRange.max);
-        let high = clamp(midpoint + blend.spread, adultRange.min, absoluteAdultClamp.max);
-        if (high - low < 4) { low = clamp(midpoint - 2.2, absoluteAdultClamp.min, adultRange.max); high = clamp(midpoint + 2.2, adultRange.min, absoluteAdultClamp.max); }
-        const confidence = blend.confidence < .45 ? "Low" : blend.confidence < .76 ? "Moderate" : "Stronger";
-        return { low, high, midpoint, confidence, percentOfMidpoint: Math.round((weight / midpoint) * 100), range: `${formatNumber(low,1)} to ${formatNumber(high,1)} kg`, source: "Based on latest weight" };
       }
 
       function calcVelocity(history) {
@@ -1058,44 +1155,15 @@
         return { intervals, latest, avgLast3, monthly, allTime };
       }
 
-      function makeForecast(hist) {
-        if (hist.length < 2) return [];
-        const v = calcVelocity(state.history).latest;
-        if (!v) return [];
-        const weekly = clamp(v.kgPerWeek, -.4, 2);
-        const last = hist[hist.length - 1];
+      function makeForecast(hist, adultEstimate) {
+        if (!hist.length || !adultEstimate) return [];
+        const last = hist.at(-1);
         return Array.from({ length: 4 }, (_, idx) => {
           const weeks = idx + 1;
-          return { date: addDays(last.date, weeks * 7), weight: roundTo(Math.max(0, last.weight + weekly * weeks), .1) };
+          const d = addDays(last.date, weeks * 7);
+          const ageDays = daysBetween(parseIso(DOB_ISO), d);
+          return { date: d, weight: roundTo(estimateProjectedWeightKg(adultEstimate, ageDays), .1) };
         });
-      }
-
-      function refAtMonth(month) {
-        if (!Number.isFinite(month)) return { min: adultRange.min, max: adultRange.max, adultPct: 1 };
-        if (month <= growthReference[0].month) return { ...growthReference[0] };
-        if (month >= growthReference.at(-1).month) return { ...growthReference.at(-1) };
-        for (let i = 0; i < growthReference.length - 1; i++) {
-          const a = growthReference[i], b = growthReference[i+1];
-          if (month >= a.month && month <= b.month) {
-            const t = (month - a.month) / (b.month - a.month || 1);
-            return { min: lerp(a.min,b.min,t), max: lerp(a.max,b.max,t), adultPct: lerp(a.adultPct,b.adultPct,t) };
-          }
-        }
-        return { ...growthReference.at(-1) };
-      }
-
-      function interpolatePredictionWeights(month) {
-        if (!Number.isFinite(month)) return { ...predictionWeights[0] };
-        if (month <= predictionWeights[0].month) return { ...predictionWeights[0] };
-        if (month >= predictionWeights.at(-1).month) return { ...predictionWeights.at(-1) };
-        for (let i = 0; i < predictionWeights.length - 1; i++) {
-          const a = predictionWeights[i], b = predictionWeights[i+1];
-          if (month >= a.month && month <= b.month) {
-            const t = (month - a.month) / (b.month - a.month || 1);
-            return { baseline: lerp(a.baseline,b.baseline,t), ratio: lerp(a.ratio,b.ratio,t), fourMonth: lerp(a.fourMonth,b.fourMonth,t), mature: lerp(a.mature,b.mature,t), spread: lerp(a.spread,b.spread,t), confidence: lerp(a.confidence,b.confidence,t) };
-          }
-        }
-        return { ...predictionWeights.at(-1) };
       }
 
       function ageStage(months) {
@@ -1107,21 +1175,18 @@
         return "Young adult";
       }
 
-      function lastWeight() { return state.history.length ? [...state.history].sort((a,b) => b.date.localeCompare(a.date))[0] : null; }
       function stat(label, value, meta) { return `<div class="stat"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div><div class="meta">${escapeHtml(meta)}</div></div>`; }
       function tile(label, value, meta) { return `<div class="tile"><div class="label">${escapeHtml(label)}</div><div class="value">${escapeHtml(value)}</div><div class="meta">${escapeHtml(meta)}</div></div>`; }
       function parseIso(s) { if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return null; const [y,m,d] = s.split("-").map(Number); const date = new Date(y,m-1,d,12); return date.getFullYear() === y && date.getMonth() === m-1 && date.getDate() === d ? date : null; }
       function iso(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
       function dayOnly(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
       function daysBetween(a,b) { return Math.max(0, Math.floor((dayOnly(b)-dayOnly(a))/MS_DAY)); }
-      function monthsBetween(a,b) { return daysBetween(a,b)/30.4375; }
       function wholeMonthsBetween(a,b) { let m = 12*(b.getFullYear()-a.getFullYear()) + (b.getMonth()-a.getMonth()); if (b.getDate() < a.getDate()) m -= 1; return Math.max(0,m); }
       function addDays(d, days) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()+days, 12); }
       function parseWeight(v) { const n = Number.parseFloat(v); return validWeight(n) ? roundTo(n, .1) : null; }
       function validWeight(v) { return Number.isFinite(v) && v > 0; }
       function roundTo(v, step) { return Number.isFinite(v) && Number.isFinite(step) && step > 0 ? Math.round(v/step)*step : null; }
       function clamp(v,min,max) { return Math.min(max, Math.max(min, v)); }
-      function lerp(a,b,t) { return a + (b-a)*t; }
       function makeTicks(min,max,count) { const arr = []; for (let i=0;i<=count;i++) arr.push(min + ((max-min)*i/count)); return arr; }
       function formatNumber(v, dp=1) { if (!Number.isFinite(Number(v))) return "-"; return Number(v).toFixed(dp).replace(/\.0+$/, "").replace(/(\.\d*[1-9])0+$/, "$1"); }
       function formatKg(v) { return `${formatNumber(v,1)} kg`; }
@@ -1143,11 +1208,15 @@
       function init() {
         el.selectedDate.min = DOB_ISO;
         el.selectedDate.value = iso(new Date());
+        save(STORAGE.history, state.history);
         applyTheme(["system","light","dark"].includes(state.theme) ? state.theme : "system");
 
         el.saveBtn.addEventListener("click", saveWeight);
         el.selectedDate.addEventListener("input", render);
         el.weightInput.addEventListener("input", render);
+        [el.rollsLeftInput, el.breakfastDone, el.lunchDone, el.dinnerDone].forEach(node => node && node.addEventListener("input", render));
+        [el.breakfastDone, el.lunchDone, el.dinnerDone].forEach(node => node && node.addEventListener("change", render));
+
         el.historyList.addEventListener("click", e => {
           const btn = e.target.closest("[data-action]");
           if (!btn) return;
@@ -1165,6 +1234,12 @@
             state.history = state.history.filter(x => x.date !== row.date);
             save(STORAGE.history, state.history);
             toast("Weight deleted.");
+            render();
+          }
+          if (btn.dataset.action === "confirm") {
+            row.confirmed = true;
+            save(STORAGE.history, state.history);
+            toast("Weight confirmed and included.");
             render();
           }
         });
